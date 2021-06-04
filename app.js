@@ -6,7 +6,7 @@ let data = {};
 
 (async function() {
   try {
-    const json = await d3.json("../../samples.json");
+    const json = await d3.json("samples.json");
     let subjects = json.names;
     saveData(json);
     addOptions();
