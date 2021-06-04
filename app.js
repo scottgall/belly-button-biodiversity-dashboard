@@ -7,7 +7,6 @@ let data = {};
 (async function() {
   try {
     const json = await d3.json("samples.json");
-    let subjects = json.names;
     saveData(json);
     addOptions();
     init();
@@ -17,14 +16,6 @@ let data = {};
 })();
 
 
-function saveData(json) {
-  data = json;
-}
-
-function optionChanged() {
-  updateMeta();
-  updatePlot();
-}
 
 function updateMeta() {
   const subject = dropdown.property('value');
@@ -44,8 +35,17 @@ function updateMeta() {
   }
 }
 
-function createPlot() {
-  const plotData = getPlotData();
+function getBarData() {
+  const subject = dropdown.property('value');
+  const found = data.samples.find(obj => obj.id == subject);
+  const x = found.sample_values.slice(0,10).reverse();
+  const y = found.otu_ids.slice(0,10).map(num => `OTU ${num}`).reverse();
+  const labels = found.otu_labels.slice(0,10).reverse();
+  return { x, y, labels };
+}
+
+function createBar() {
+  const plotData = getBarData();
   const data = [{
     type: 'bar',
     x: plotData.x,
@@ -61,22 +61,57 @@ function createPlot() {
   Plotly.newPlot('bar', data, layout);
 }
 
-function updatePlot() {
-  const plotData = getPlotData();
+function updateBar() {
+  const plotData = getBarData();
   Plotly.restyle('bar', 'x', [plotData.x]);
   Plotly.restyle('bar', 'y', [plotData.y]);
   Plotly.restyle('bar', 'text', [plotData.labels]);
   
 }
 
-function getPlotData() {
+function getBubbleData() {
   const subject = dropdown.property('value');
   const found = data.samples.find(obj => obj.id == subject);
-  const x = found.sample_values.slice(0,10).reverse();
-  const y = found.otu_ids.slice(0,10).map(num => `OTU ${num}`).reverse();
-  const labels = found.otu_labels.slice(0,10).reverse();
+  const x = found.otu_ids;
+  const y = found.sample_values;
+  const labels = found.otu_labels;
   return { x, y, labels };
 }
+
+function createBubble() {
+  const plotData = getBubbleData();
+  const data = [{
+    x: plotData.x,
+    y: plotData.y,
+    text: plotData.labels,
+    mode: 'markers',
+    marker: {
+      color: plotData.x,
+      size: plotData.y
+    }
+  }];
+  const layout = {
+    title: {
+      text: 'Bacteria Cultures Per Sample'
+    },
+    xaxis: {
+      title: {
+        text: 'OTU ID'
+      }
+    }
+  }
+  Plotly.newPlot('bubble', data, layout);
+}
+
+function updateBubble () {
+  const plotData = getBubbleData();
+  Plotly.restyle('bubble', 'x', [plotData.x]);
+  Plotly.restyle('bubble', 'y', [plotData.y]);
+  Plotly.restyle('bubble', 'text', [plotData.labels]);
+  Plotly.restyle('bubble', 'marker.color', [plotData.x]);
+  Plotly.restyle('bubble', 'marker.size', [plotData.y]);
+}
+
 
 function addOptions() {
   data.names.forEach(subject => {
@@ -84,7 +119,18 @@ function addOptions() {
   });
 }
 
+function saveData(json) {
+  data = json;
+}
+
+function optionChanged() {
+  updateMeta();
+  updateBar();
+  updateBubble();
+}
+
 function init() {
   updateMeta();
-  createPlot();
+  createBar();
+  createBubble();
 }
