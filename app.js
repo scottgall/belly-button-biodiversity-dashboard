@@ -3,10 +3,9 @@ let dropdown = d3.select('#selDataset');
 let meta = d3.select('#sample-metadata');
 let data = {};
 
-
 (async function() {
   try {
-    const json = await d3.json("samples.json");
+    const json = await d3.json('samples.json');
     saveData(json);
     addOptions(json.names);
     const subject = dropdown.property('value');
@@ -16,18 +15,15 @@ let data = {};
   }
 })();
 
-
-
 function updateMeta(subject) {
-  const found = data.metadata.find(obj => obj.id == subject);
   const metadata = {
-    id: found.id,
-    ethnicity: found.ethnicity,
-    gender: found.gender,
-    age: found.age,
-    location: found.location,
-    bbtype: found.bbtype,
-    wfreq: found.wfreq
+    id: subject.id,
+    ethnicity: subject.ethnicity,
+    gender: subject.gender,
+    age: subject.age,
+    location: subject.location,
+    bbtype: subject.bbtype,
+    wfreq: subject.wfreq
   }
   meta.text('');
   for(const [key, value] of Object.entries(metadata)) {
@@ -36,10 +32,9 @@ function updateMeta(subject) {
 }
 
 function getBarData(subject) {
-  const found = data.samples.find(obj => obj.id == subject);
-  const x = found.sample_values.slice(0,10).reverse();
-  const y = found.otu_ids.slice(0,10).map(num => `OTU ${num}`).reverse();
-  const labels = found.otu_labels.slice(0,10).reverse();
+  const x = subject.sample_values.slice(0,10).reverse();
+  const y = subject.otu_ids.slice(0,10).map(num => `OTU ${num}`).reverse();
+  const labels = subject.otu_labels.slice(0,10).reverse();
   return { x, y, labels };
 }
 
@@ -68,58 +63,55 @@ function updateBar(subject) {
   
 }
 
-function getGaugeData(subject) {
-  return data.metadata.find(obj => obj.id == subject).wfreq;
-}
-
-function createGauge(subject) {
-  const washFreq = getGaugeData(subject);
+function createGauge(washFreq) {
   const data = [{
     domain: { x: [0, 1], y: [0, 1] },
     value: washFreq,
     title: { text: "Belly Button Washing Frequency" },
-    xaxis: { title: { text: "poop" } },
     type: "indicator",
-    mode: "gauge"
-  }]
-  const layout = {
-    xaxis: {
-      title: {
-        text: 'poop'
-      }
-    },
-    yaxis: {
-      title: {
-        text: 'poop'
+    mode: "gauge+number",
+    gauge: {
+      axis: { 
+        range: [null, 9],
+        tickvals: [0,1,2,3,4,5,6,7,8,9],
+        name: 'poop'
+      },
+      steps: [
+        { range: [0, 1], color: "#d9eaf6" },
+        { range: [1, 2], color: "#cae1f2" },
+        { range: [2, 3], color: "#bad8ee" },
+        { range: [3, 4], color: "#aacfeb" },
+        { range: [4, 5], color: "#9ac6e7" },
+        { range: [5, 6], color: "#8abee3" },
+        { range: [6, 7], color: "#7ab5df" },
+        { range: [7, 8], color: "#6bacdc" },
+        { range: [8, 9], color: "#5ba3d8" }
+      ],
+      threshold: {
+        line: { color: 'rebeccapurple', width: 4 },
+        thickness: 0.75,
+        value: washFreq
       }
     }
-  }
+  }];
+  const layout = { width: 500, height: 500, margin: { t: 0, b: 0 } };
   Plotly.newPlot('gauge', data, layout);
 }
 
-function updateGauge(subject) {
-  const washFreq = getGaugeData(subject);
+function updateGauge(washFreq) {
   Plotly.restyle('gauge', 'value', [washFreq]);
-}
-
-function getBubbleData(subject) {
-  const found = data.samples.find(obj => obj.id == subject);
-  const x = found.otu_ids;
-  const y = found.sample_values;
-  const labels = found.otu_labels;
-  return { x, y, labels };
+  Plotly.restyle('gauge', 'gauge.threshold.value', [washFreq])
 }
 
 function createBubble(subject) {
-  const plotData = getBubbleData(subject);
   const data = [{
-    x: plotData.x,
-    y: plotData.y,
-    text: plotData.labels,
+    x: subject.otu_ids,
+    y: subject.sample_values,
+    text: subject.otu_labels,
     mode: 'markers',
     marker: {
-      color: plotData.x,
-      size: plotData.y
+      color: subject.otu_ids,
+      size: subject.sample_values
     }
   }];
   const layout = {
@@ -136,14 +128,12 @@ function createBubble(subject) {
 }
 
 function updateBubble (subject) {
-  const plotData = getBubbleData(subject);
-  Plotly.restyle('bubble', 'x', [plotData.x]);
-  Plotly.restyle('bubble', 'y', [plotData.y]);
-  Plotly.restyle('bubble', 'text', [plotData.labels]);
-  Plotly.restyle('bubble', 'marker.color', [plotData.x]);
-  Plotly.restyle('bubble', 'marker.size', [plotData.y]);
+  Plotly.restyle('bubble', 'x', [subject.otu_ids]);
+  Plotly.restyle('bubble', 'y', [subject.sample_values]);
+  Plotly.restyle('bubble', 'text', [subject.otu_labels]);
+  Plotly.restyle('bubble', 'marker.color', [subject.otu_ids]);
+  Plotly.restyle('bubble', 'marker.size', [subject.sample_values]);
 }
-
 
 function addOptions(subjects) {
   subjects.forEach(id => {
@@ -156,15 +146,19 @@ function saveData(json) {
 }
 
 function optionChanged(subject) {
-  updateMeta(subject);
-  updateBar(subject);
-  updateGauge(subject);
-  updateBubble(subject);
+  const metadata = data.metadata.find(obj => obj.id == subject)
+  const samples = data.samples.find(obj => obj.id == subject);
+  updateMeta(metadata);
+  updateBar(samples);
+  updateGauge(metadata.wfreq);
+  updateBubble(samples);
 }
 
 function init(subject) {
-  updateMeta(subject);
-  createBar(subject);
-  createGauge(subject);
-  createBubble(subject);
+  const metadata = data.metadata.find(obj => obj.id == subject)
+  const samples = data.samples.find(obj => obj.id == subject);
+  updateMeta(metadata);
+  createBar(samples);
+  createGauge(metadata.wfreq);
+  createBubble(samples);
 }
