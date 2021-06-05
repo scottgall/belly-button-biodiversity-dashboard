@@ -24,10 +24,10 @@ function updateMeta(subject) {
     location: subject.location,
     bbtype: subject.bbtype,
     wfreq: subject.wfreq
-  }
+  };
   meta.text('');
   for(const [key, value] of Object.entries(metadata)) {
-    meta.append('div').text(`${key}: ${value}`)
+    meta.append('div').text(`${key}: ${value}`);
   }
 }
 
@@ -46,12 +46,12 @@ function createBar(subject) {
     y: plotData.y,
     text: plotData.labels,
     orientation: 'h'
-  }]
+  }];
   const layout = {
     title: {
       text: 'Top 10 Bacteria Cultures Found'
     }
-  }
+  };
   Plotly.newPlot('bar', data, layout);
 }
 
@@ -60,32 +60,30 @@ function updateBar(subject) {
   Plotly.restyle('bar', 'x', [plotData.x]);
   Plotly.restyle('bar', 'y', [plotData.y]);
   Plotly.restyle('bar', 'text', [plotData.labels]);
-  
 }
 
 function createGauge(washFreq) {
   const data = [{
     domain: { x: [0, 1], y: [0, 1] },
     value: washFreq,
-    title: { text: "Belly Button Washing Frequency" },
-    type: "indicator",
-    mode: "gauge+number",
+    title: { text: 'Belly Button Washing Frequency' },
+    type: 'indicator',
+    mode: 'gauge+number',
     gauge: {
       axis: { 
         range: [null, 9],
         tickvals: [0,1,2,3,4,5,6,7,8,9],
-        name: 'poop'
       },
       steps: [
-        { range: [0, 1], color: "#d9eaf6" },
-        { range: [1, 2], color: "#cae1f2" },
-        { range: [2, 3], color: "#bad8ee" },
-        { range: [3, 4], color: "#aacfeb" },
-        { range: [4, 5], color: "#9ac6e7" },
-        { range: [5, 6], color: "#8abee3" },
-        { range: [6, 7], color: "#7ab5df" },
-        { range: [7, 8], color: "#6bacdc" },
-        { range: [8, 9], color: "#5ba3d8" }
+        { range: [0, 1], color: '#d9eaf6' },
+        { range: [1, 2], color: '#cae1f2' },
+        { range: [2, 3], color: '#bad8ee' },
+        { range: [3, 4], color: '#aacfeb' },
+        { range: [4, 5], color: '#9ac6e7' },
+        { range: [5, 6], color: '#8abee3' },
+        { range: [6, 7], color: '#7ab5df' },
+        { range: [7, 8], color: '#6bacdc' },
+        { range: [8, 9], color: '#5ba3d8' }
       ],
       threshold: {
         line: { color: 'rebeccapurple', width: 4 },
@@ -100,7 +98,7 @@ function createGauge(washFreq) {
 
 function updateGauge(washFreq) {
   Plotly.restyle('gauge', 'value', [washFreq]);
-  Plotly.restyle('gauge', 'gauge.threshold.value', [washFreq])
+  Plotly.restyle('gauge', 'gauge.threshold.value', [washFreq]);
 }
 
 function createBubble(subject) {
@@ -123,7 +121,7 @@ function createBubble(subject) {
         text: 'OTU ID'
       }
     }
-  }
+  };
   Plotly.newPlot('bubble', data, layout);
 }
 
@@ -146,7 +144,7 @@ function saveData(json) {
 }
 
 function optionChanged(subject) {
-  const metadata = data.metadata.find(obj => obj.id == subject)
+  const metadata = data.metadata.find(obj => obj.id == subject);
   const samples = data.samples.find(obj => obj.id == subject);
   updateMeta(metadata);
   updateBar(samples);
@@ -155,7 +153,7 @@ function optionChanged(subject) {
 }
 
 function init(subject) {
-  const metadata = data.metadata.find(obj => obj.id == subject)
+  const metadata = data.metadata.find(obj => obj.id == subject);
   const samples = data.samples.find(obj => obj.id == subject);
   updateMeta(metadata);
   createBar(samples);
