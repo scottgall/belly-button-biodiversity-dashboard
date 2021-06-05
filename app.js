@@ -8,8 +8,9 @@ let data = {};
   try {
     const json = await d3.json("samples.json");
     saveData(json);
-    addOptions();
-    init();
+    addOptions(json.names);
+    const subject = dropdown.property('value');
+    init(subject);
   } catch(error) {
     console.log(error);
   }
@@ -17,8 +18,7 @@ let data = {};
 
 
 
-function updateMeta() {
-  const subject = dropdown.property('value');
+function updateMeta(subject) {
   const found = data.metadata.find(obj => obj.id == subject);
   const metadata = {
     id: found.id,
@@ -35,8 +35,7 @@ function updateMeta() {
   }
 }
 
-function getBarData() {
-  const subject = dropdown.property('value');
+function getBarData(subject) {
   const found = data.samples.find(obj => obj.id == subject);
   const x = found.sample_values.slice(0,10).reverse();
   const y = found.otu_ids.slice(0,10).map(num => `OTU ${num}`).reverse();
@@ -44,8 +43,8 @@ function getBarData() {
   return { x, y, labels };
 }
 
-function createBar() {
-  const plotData = getBarData();
+function createBar(subject) {
+  const plotData = getBarData(subject);
   const data = [{
     type: 'bar',
     x: plotData.x,
@@ -61,16 +60,49 @@ function createBar() {
   Plotly.newPlot('bar', data, layout);
 }
 
-function updateBar() {
-  const plotData = getBarData();
+function updateBar(subject) {
+  const plotData = getBarData(subject);
   Plotly.restyle('bar', 'x', [plotData.x]);
   Plotly.restyle('bar', 'y', [plotData.y]);
   Plotly.restyle('bar', 'text', [plotData.labels]);
   
 }
 
-function getBubbleData() {
-  const subject = dropdown.property('value');
+function getGaugeData(subject) {
+  return data.metadata.find(obj => obj.id == subject).wfreq;
+}
+
+function createGauge(subject) {
+  const washFreq = getGaugeData(subject);
+  const data = [{
+    domain: { x: [0, 1], y: [0, 1] },
+    value: washFreq,
+    title: { text: "Belly Button Washing Frequency" },
+    xaxis: { title: { text: "poop" } },
+    type: "indicator",
+    mode: "gauge"
+  }]
+  const layout = {
+    xaxis: {
+      title: {
+        text: 'poop'
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'poop'
+      }
+    }
+  }
+  Plotly.newPlot('gauge', data, layout);
+}
+
+function updateGauge(subject) {
+  const washFreq = getGaugeData(subject);
+  Plotly.restyle('gauge', 'value', [washFreq]);
+}
+
+function getBubbleData(subject) {
   const found = data.samples.find(obj => obj.id == subject);
   const x = found.otu_ids;
   const y = found.sample_values;
@@ -78,8 +110,8 @@ function getBubbleData() {
   return { x, y, labels };
 }
 
-function createBubble() {
-  const plotData = getBubbleData();
+function createBubble(subject) {
+  const plotData = getBubbleData(subject);
   const data = [{
     x: plotData.x,
     y: plotData.y,
@@ -103,8 +135,8 @@ function createBubble() {
   Plotly.newPlot('bubble', data, layout);
 }
 
-function updateBubble () {
-  const plotData = getBubbleData();
+function updateBubble (subject) {
+  const plotData = getBubbleData(subject);
   Plotly.restyle('bubble', 'x', [plotData.x]);
   Plotly.restyle('bubble', 'y', [plotData.y]);
   Plotly.restyle('bubble', 'text', [plotData.labels]);
@@ -113,9 +145,9 @@ function updateBubble () {
 }
 
 
-function addOptions() {
-  data.names.forEach(subject => {
-    dropdown.append('option').text(subject).property('value', subject);
+function addOptions(subjects) {
+  subjects.forEach(id => {
+    dropdown.append('option').text(id).property('value', id);
   });
 }
 
@@ -123,14 +155,16 @@ function saveData(json) {
   data = json;
 }
 
-function optionChanged() {
-  updateMeta();
-  updateBar();
-  updateBubble();
+function optionChanged(subject) {
+  updateMeta(subject);
+  updateBar(subject);
+  updateGauge(subject);
+  updateBubble(subject);
 }
 
-function init() {
-  updateMeta();
-  createBar();
-  createBubble();
+function init(subject) {
+  updateMeta(subject);
+  createBar(subject);
+  createGauge(subject);
+  createBubble(subject);
 }
