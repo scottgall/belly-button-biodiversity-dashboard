@@ -66,7 +66,7 @@ function createGauge(washFreq) {
   const data = [{
     domain: { x: [0, 1], y: [0, 1] },
     value: washFreq,
-    title: { text: 'Belly Button Washing Frequency' },
+    title: { text: 'Weekly Belly Button Washes' },
     type: 'indicator',
     mode: 'gauge+number',
     gauge: {
