@@ -92,7 +92,7 @@ function createGauge(washFreq) {
       }
     }
   }];
-  const layout = { width: '100%', height: '100%', margin: { t: 0, b: 0 } };
+  const layout = { width: 500, height: 500, margin: { t: 0, b: 0 } };
   Plotly.newPlot('gauge', data, layout);
 }
 
